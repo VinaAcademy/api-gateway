@@ -25,12 +25,17 @@ public class JwtServiceClient {
 
     @PostConstruct
     public void init() {
-        GrpcServer grpcServer = GrpcUtils.getGrpcServer(discoveryClient, ServiceNames.AUTH_SERVICE);
-        channel = ManagedChannelBuilder.forAddress(grpcServer.getHost(), grpcServer.getPort())
-                .usePlaintext() // Use plaintext for simplicity; consider using TLS in production
-                .build();
-        stub = JwtServiceGrpc.newBlockingStub(channel);
-        log.info("JwtServiceClient initialized with host: {}, port: {}", grpcServer.getHost(), grpcServer.getPort());
+        try {
+            GrpcServer grpcServer = GrpcUtils.getGrpcServer(discoveryClient, ServiceNames.USER_SERVICE);
+            channel = ManagedChannelBuilder.forAddress(grpcServer.getHost(), grpcServer.getPort())
+                    .usePlaintext() // Use plaintext for simplicity; consider using TLS in production
+                    .build();
+            stub = JwtServiceGrpc.newBlockingStub(channel);
+            log.info("JwtServiceClient initialized with host: {}, port: {}", grpcServer.getHost(), grpcServer.getPort());
+        } catch (Exception e) {
+            log.error("Failed to initialize JwtServiceClient: {}", e.getMessage());
+            throw new RuntimeException("Failed to initialize JwtServiceClient", e);
+        }
     }
 
     @PreDestroy

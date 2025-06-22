@@ -5,7 +5,7 @@
     <parent>
         <groupId>com.github.VinaAcademy</groupId>
         <artifactId>vinaacademy-parent</artifactId>
-        <version>1.0.0</version>
+        <version>1.0.1-ALPHA</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>vn.vinaacademy</groupId>
@@ -24,7 +24,6 @@
         <dependency>
             <groupId>com.github.VinaAcademy</groupId>
             <artifactId>common-library</artifactId>
-            <version>1.0.0</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
