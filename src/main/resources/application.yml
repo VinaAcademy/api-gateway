@@ -15,9 +15,15 @@ spring:
     gateway:
       routes:
         - id: auth-service
-          uri: lb://AUTH-SERVICE
+          uri: lb://USER-SERVICE
           predicates:
             - Path=/api/v1/auth/**
+        - id: user-service
+          uri: lb://USER-SERVICE
+          predicates:
+            - Path=/api/v1/user/**
+          filters:
+            - name: JwtAuthentication
         - id: video-service
           uri: lb://VIDEO-SERVICE
           predicates:
