@@ -18,16 +18,26 @@ spring:
           uri: lb://USER-SERVICE
           predicates:
             - Path=/api/v1/auth/**
+
         - id: user-service
           uri: lb://USER-SERVICE
           predicates:
-            - Path=/api/v1/user/**
+            - Path=/api/v1/users/**
           filters:
             - name: JwtAuthentication
+
         - id: video-service
           uri: lb://VIDEO-SERVICE
           predicates:
             - Path=/api/v1/videos/**
+          filters:
+            - name: JwtAuthentication
+
+        # 💡 Cấu hình fallback cho các route chưa tách khỏi monolith
+        - id: platform-fallback
+          uri: lb://VINAACADEMY-PLATFORM
+          predicates:
+            - Path=/api/v1/**
           filters:
             - name: JwtAuthentication
       discovery:

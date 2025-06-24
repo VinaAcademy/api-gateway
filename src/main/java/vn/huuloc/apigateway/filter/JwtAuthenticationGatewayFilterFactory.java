@@ -69,7 +69,7 @@ public class JwtAuthenticationGatewayFilterFactory
                     })
                     .onErrorResume(ex -> {
                         log.error("JWT validation error: {}", ex.getMessage());
-                        return onError(exchange, "JWT validation failed", HttpStatus.INTERNAL_SERVER_ERROR);
+                        return onError(exchange, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
                     });
         };
     }
