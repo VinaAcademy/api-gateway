@@ -33,6 +33,13 @@ spring:
           filters:
             - name: JwtAuthentication
 
+        - id: notification-service
+          uri: lb://NOTIFICATION-SERVICE
+          predicates:
+            - Path=/api/v1/notifications/**
+          filters:
+            - name: JwtAuthentication
+
         # 💡 Cấu hình fallback cho các route chưa tách khỏi monolith
         - id: platform-fallback
           uri: lb://VINAACADEMY-PLATFORM
