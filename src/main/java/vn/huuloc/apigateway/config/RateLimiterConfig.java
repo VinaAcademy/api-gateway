@@ -4,6 +4,7 @@ import org.springframework.cloud.gateway.filter.ratelimit.KeyResolver;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import reactor.core.publisher.Mono;
+import vn.huuloc.apigateway.utils.RequestResponseUtils;
 
 import java.util.Objects;
 
@@ -12,8 +13,11 @@ public class RateLimiterConfig {
 
     @Bean
     public KeyResolver ipKeyResolver() {
-        return exchange -> Mono.just(Objects.requireNonNull(exchange.getRequest()
-                        .getRemoteAddress())
-                .getAddress().getHostAddress());
+        return exchange -> {
+            var request = exchange.getRequest();
+            // Extract the IP address from the request
+            String ip = RequestResponseUtils.getClientIp(request);
+            return Mono.just(ip);
+        };
     }
 }

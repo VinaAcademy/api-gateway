@@ -26,7 +26,7 @@ public class LoggingFilter implements GlobalFilter, Ordered {
         ServerHttpRequest request = exchange.getRequest();
         long startTime = System.currentTimeMillis();
 
-        log.info("[REQUEST] {} {} - Request IP: {} - UserAgent: {}",
+        log.debug("[REQUEST] {} {} - Request IP: {} - UserAgent: {}",
                 request.getMethod(),
                 request.getURI(),
                 getClientIp(request),
@@ -36,7 +36,7 @@ public class LoggingFilter implements GlobalFilter, Ordered {
         Route route = exchange.getAttribute(GATEWAY_ROUTE_ATTR);
         if (route != null) {
             URI uri = route.getUri();
-            log.info("[ROUTE] {} - Route ID: {} - URI: {}",
+            log.debug("[ROUTE] {} - Route ID: {} - URI: {}",
                     route.getId(),
                     uri.getHost() + (uri.getPort() != -1 ? ":" + uri.getPort() : ""),
                     uri);
