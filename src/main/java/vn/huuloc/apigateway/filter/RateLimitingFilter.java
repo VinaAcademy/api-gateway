@@ -89,7 +89,7 @@ public class RateLimitingFilter implements GlobalFilter, Ordered {
                 scheduleCleanup(k);
                 return new AtomicInteger(0);
             });
-            int current = counter.getAndIncrement();
+            int current = counter.incrementAndGet();
             return current <= securityProperties.getRateLimit().getMaxRequestsPerMinute();
         });
     }
