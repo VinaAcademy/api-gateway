@@ -1,32 +1,29 @@
 package vn.huuloc.apigateway.filter;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
-import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
-import org.springframework.http.server.reactive.ServerHttpResponse;
-import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 import vn.huuloc.apigateway.grpc.JwtServiceClient;
-import vn.vinaacademy.common.response.ApiResponse;
 
-@Component
+import static vn.huuloc.apigateway.utils.RequestResponseUtils.onError;
+
+@Deprecated
+//@Component
 @Slf4j
 public class JwtAuthenticationGatewayFilterFactory
         extends AbstractGatewayFilterFactory<JwtAuthenticationGatewayFilterFactory.Config> {
 
-    @Autowired
+    //    @Autowired
     private ObjectMapper objectMapper;
 
-    @Autowired
+    //    @Autowired
     private JwtServiceClient jwtServiceClient; // blocking gRPC client
 
     public JwtAuthenticationGatewayFilterFactory() {
@@ -72,23 +69,6 @@ public class JwtAuthenticationGatewayFilterFactory
                         return onError(exchange, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
                     });
         };
-    }
-
-    private Mono<Void> onError(ServerWebExchange exchange, String errorMessage, HttpStatus status) {
-        ServerHttpResponse response = exchange.getResponse();
-        response.setStatusCode(status);
-        response.getHeaders().setContentType(org.springframework.http.MediaType.APPLICATION_JSON);
-
-        ApiResponse<?> apiResponse = ApiResponse.error(errorMessage);
-
-        try {
-            byte[] bytes = objectMapper.writeValueAsBytes(apiResponse);
-            DataBuffer buffer = response.bufferFactory().wrap(bytes);
-            return response.writeWith(Mono.just(buffer));
-        } catch (JsonProcessingException e) {
-            log.error("Failed to serialize error response: {}", e.getMessage());
-            return response.setComplete();
-        }
     }
 
     public static class Config {
