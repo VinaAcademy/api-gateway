@@ -1,5 +1,6 @@
 package vn.huuloc.apigateway.filter;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
@@ -33,6 +34,9 @@ public class RateLimitingFilter implements GlobalFilter, Ordered {
     @Autowired(required = false)
     private StringRedisTemplate redisTemplate;
 
+    @Autowired
+    private ObjectMapper objectMapper;
+
     private final ConcurrentHashMap<String, AtomicInteger> inMemoryCounter = new ConcurrentHashMap<>();
 
     private final ScheduledExecutorService schedule = Executors.newSingleThreadScheduledExecutor();
@@ -52,7 +56,8 @@ public class RateLimitingFilter implements GlobalFilter, Ordered {
                 .flatMap(allowed -> {
                     if (!allowed) {
                         log.warn("Rate limit exceeded for IP: {}", clientIp);
-                        return onError(exchange, "Rate limit exceeded", HttpStatus.TOO_MANY_REQUESTS);
+                        return onError(exchange, "Rate limit exceeded", HttpStatus.TOO_MANY_REQUESTS,
+                                objectMapper);
                     }
                     log.debug("Rate limit check passed for IP: {}", clientIp);
                     return chain.filter(exchange)
