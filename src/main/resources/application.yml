@@ -73,6 +73,11 @@ spring:
           predicates:
             - Path=/api/v1/notifications/**
 
+        - id: cart-service
+          uri: lb://ORDER-SERVICE
+          predicates:
+            - Path=/api/v1/cart/**
+
         # 💡 Cấu hình fallback cho các route chưa tách khỏi monolith
         - id: platform-fallback
           uri: lb://VINAACADEMY-PLATFORM

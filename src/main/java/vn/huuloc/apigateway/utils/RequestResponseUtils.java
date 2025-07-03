@@ -15,7 +15,6 @@ import vn.vinaacademy.common.response.ApiResponse;
 @Slf4j
 @UtilityClass
 public class RequestResponseUtils {
-    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     public static String getClientIp(ServerHttpRequest request) {
         String xForwardedFor = request.getHeaders().getFirst("X-Forwarded-For");
@@ -33,7 +32,8 @@ public class RequestResponseUtils {
     }
 
 
-    public static Mono<Void> onError(ServerWebExchange exchange, String errorMessage, HttpStatus status) {
+    public static Mono<Void> onError(ServerWebExchange exchange, String errorMessage, HttpStatus status,
+                                     ObjectMapper objectMapper) {
         ServerHttpResponse response = exchange.getResponse();
         response.setStatusCode(status);
         response.getHeaders().setContentType(org.springframework.http.MediaType.APPLICATION_JSON);

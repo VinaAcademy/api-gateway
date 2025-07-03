@@ -1,5 +1,6 @@
 package vn.huuloc.apigateway.filter;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
@@ -30,6 +31,9 @@ public class JwtTokenFilter implements GlobalFilter, Ordered {
     @Autowired
     private GatewaySecurityProperties securityProperties;
 
+    @Autowired
+    private ObjectMapper objectMapper;
+
     private final AntPathMatcher pathMatcher = new AntPathMatcher();
 
     @Override
@@ -48,7 +52,8 @@ public class JwtTokenFilter implements GlobalFilter, Ordered {
         String authHeader = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            return onError(exchange, "Missing or invalid Authorization header", HttpStatus.UNAUTHORIZED);
+            return onError(exchange, "Missing or invalid Authorization header", HttpStatus.UNAUTHORIZED,
+                    objectMapper);
         }
 
         String token = authHeader.substring(7);
@@ -58,7 +63,8 @@ public class JwtTokenFilter implements GlobalFilter, Ordered {
                 .flatMap(validateToken -> {
                     if (!validateToken.getIsValid()) {
                         log.warn("Invalid JWT token for path: {}", path);
-                        return onError(exchange, "Invalid JWT token", HttpStatus.UNAUTHORIZED);
+                        return onError(exchange, "Invalid JWT token", HttpStatus.UNAUTHORIZED,
+                                objectMapper);
                     }
 
                     ServerHttpRequest mutatedRequest = request.mutate()
@@ -75,7 +81,8 @@ public class JwtTokenFilter implements GlobalFilter, Ordered {
                 })
                 .onErrorResume(ex -> {
                     log.error("JWT validation error for path {}: {}", path, ex.getMessage());
-                    return onError(exchange, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+                    return onError(exchange, ex.getMessage(), HttpStatus.UNAUTHORIZED,
+                            objectMapper);
                 });
     }
 
