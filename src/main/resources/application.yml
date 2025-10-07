@@ -4,21 +4,9 @@ server:
 # Gateway Security Configuration
 gateway:
   security:
-    jwt:
-      whitelist:
-        - path: "/api/v1/auth/**"
-        - path: "/actuator/health"
-        - path: "/actuator/info"
-        - path: "/actuator/metrics"
-        - path: "/favicon.ico"
-        - path: "/error"
-        - path: "/api/v1/categories"
-          methods: [ GET ]
-        - path: "/api/v1/categories/*"
-          methods: [ GET ]
     rate-limit:
       enabled: true
-      max-requests-per-minute: 100
+      max-requests-per-minute: 200
       redis-key-prefix: "rate_limit:"
 
 
@@ -30,63 +18,67 @@ spring:
       host: localhost
       port: 6379
       timeout: 2000ms
-  autoconfigure:
-    exclude: org.springframework.grpc.autoconfigure.server.GrpcServerFactoryAutoConfiguration
   cloud:
     gateway:
-      default-filters:
-        - name: RequestRateLimiter
-          args:
-            redis-rate-limiter.replenish-rate: 10
-            redis-rate-limiter.burst-capacity: 20
-            key-resolver: "#{@ipKeyResolver}"
-      globalcors:
-        corsConfigurations:
-          '[/**]':
-            allowedOriginPatterns: "*"
-            allowedMethods: "*"
-            allowedHeaders: "*"
-            allowCredentials: true
-      routes:
-        - id: auth-service
-          uri: lb://USER-SERVICE
-          predicates:
-            - Path=/api/v1/auth/**
+      server:
+        webflux:
+          default-filters:
+            - name: DedupeResponseHeader
+              args:
+                strategy: RETAIN_FIRST
+                name: Access-Control-Allow-Origin Access-Control-Allow-Credentials
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenish-rate: 10
+                redis-rate-limiter.burst-capacity: 20
+                key-resolver: "#{@ipKeyResolver}"
+          globalcors:
+            corsConfigurations:
+              '[/**]':
+                allowedOriginPatterns: "*"
+                allowedMethods: "*"
+                allowedHeaders: "*"
+                allowCredentials: true
+          routes:
+            # WebSocket route for STOMP connections (SockJS enabled)
+            - id: chat-websocket
+              uri: lb:ws://CHAT-SERVICE
+              predicates:
+                - Path=/ws/chat/**
+              filters:
+                - name: PreserveHostHeader
+                - RemoveRequestHeader=Sec-WebSocket-Protocol
+            
+            # Chat REST API routes
+            - id: chat-api
+              uri: lb://CHAT-SERVICE
+              predicates:
+                - Path=/api/v1/conversations/**, /api/v1/messages/**
 
-        - id: user-service
-          uri: lb://USER-SERVICE
-          predicates:
-            - Path=/api/v1/users/**
 
-        - id: video-service
-          uri: lb://VIDEO-SERVICE
-          predicates:
-            - Path=/api/v1/videos/**
+            - id: notification-websocket
+              uri: lb:ws://NOTIFICATION-SERVICE
+              predicates:
+                - Path=/ws/notification/**
+              filters:
+                - name: PreserveHostHeader
+                - RemoveRequestHeader=Sec-WebSocket-Protocol
 
-        - id: category-service
-          uri: lb://COURSE-SERVICE
-          predicates:
-            - Path=/api/v1/categories/**
+            - id: notification-service
+              uri: lb://NOTIFICATION-SERVICE
+              predicates:
+                - Path=/api/v1/notifications/**
 
-        - id: notification-service
-          uri: lb://NOTIFICATION-SERVICE
-          predicates:
-            - Path=/api/v1/notifications/**
+            # 💡 Cấu hình fallback cho các route chưa tách khỏi monolith
+            - id: platform-fallback
+              uri: lb://VINAACADEMY-PLATFORM
+              predicates:
+                - Path=/api/v1/**
 
-        - id: cart-service
-          uri: lb://ORDER-SERVICE
-          predicates:
-            - Path=/api/v1/cart/**
-
-        # 💡 Cấu hình fallback cho các route chưa tách khỏi monolith
-        - id: platform-fallback
-          uri: lb://VINAACADEMY-PLATFORM
-          predicates:
-            - Path=/api/v1/**
-      discovery:
-        locator:
-          enabled: true
-          lower-case-service-id: true
+          discovery:
+            locator:
+              lower-case-service-id: true
+              enabled: true
   main:
     web-application-type: reactive
 
