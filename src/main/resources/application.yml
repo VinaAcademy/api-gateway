@@ -47,7 +47,6 @@ spring:
                 - Path=/ws/chat/**
               filters:
                 - name: PreserveHostHeader
-                - RemoveRequestHeader=Sec-WebSocket-Protocol
             
             # Chat REST API routes
             - id: chat-api
@@ -62,7 +61,6 @@ spring:
                 - Path=/ws/notification/**
               filters:
                 - name: PreserveHostHeader
-                - RemoveRequestHeader=Sec-WebSocket-Protocol
 
             - id: notification-service
               uri: lb://NOTIFICATION-SERVICE
