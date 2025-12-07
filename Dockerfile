@@ -1,5 +1,5 @@
 # Stage 1: Build stage
-FROM openjdk:17-jdk-alpine AS builder
+FROM eclipse-temurin:17-jdk-alpine AS builder
 
 # Thiết lập thư mục làm việc
 WORKDIR /app
@@ -20,7 +20,7 @@ COPY src ./src
 RUN ./mvnw clean package -DskipTests
 
 # Stage 2: Runtime stage
-FROM openjdk:17-jdk-alpine
+FROM eclipse-temurin:17-jdk-alpine
 
 # Thiết lập thông tin metadata
 LABEL maintainer="VinaAcademy"
@@ -38,6 +38,9 @@ WORKDIR /app
 # Copy JAR file từ build stage
 COPY --from=builder /app/target/*.jar app.jar
 
+# RSA keys storage directory
+RUN mkdir -p /app/keys && chown -R vinaacademy:vinaacademy /app/keys
+
 # Chuyển quyền sở hữu
 RUN chown vinaacademy:vinaacademy app.jar
 
@@ -52,7 +55,7 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
   CMD curl -f http://localhost:8080/actuator/health || exit 1
 
 # Thiết lập JVM options
-ENV JAVA_OPTS="-Xmx512m -Xms256m -XX:+UseG1GC -XX:+UseContainerSupport -Djava.security.egd=file:/dev/./urandom"
+ENV JAVA_OPTS="-Xmx1024m -Xms512m -XX:+UseG1GC -XX:+UseContainerSupport -Djava.security.egd=file:/dev/./urandom"
 
 # Command để chạy ứng dụng
 ENTRYPOINT ["sh", "-c", "exec java $JAVA_OPTS -jar app.jar"]
